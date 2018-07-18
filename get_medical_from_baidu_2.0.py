@@ -18,7 +18,7 @@ def get_html(page_num):
     """获取百度百科医疗术语"""
     url = "https://baike.baidu.com/wikitag/api/getlemmas"   # 目标链接
     # proxies = {"https": "http://221.202.72.250:53281", }   # 设置代理
-    proxies = {"http": "http://121.31.194.39:8123"}  # 设置代理
+    proxies = {"http": "http://103.109.58.242:8080", }   # 设置代理
     headers = {
         "Host": "baike.baidu.com",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
@@ -42,7 +42,7 @@ def get_html(page_num):
         "tagId": "75953",
         "timeout": "3000",
     }
-    res = requests.post(url, headers=headers, data=data, proxies=proxies)
+    res = requests.post(url, headers=headers, data=data, proxies=proxies, timeout=5)
     res_json = json.dumps(res.json(), ensure_ascii=False)
     with open("Name_Url_data/medical_json/medical_json(" + str(page_num) + ").txt", 'w') as f:
         f.write(res_json)
@@ -67,7 +67,7 @@ def analysis_json(json_path):
 
 
 def main():
-    for i in range (0, 73):
+    for i in range (71, 74):
         get_html(page_num=i)
 
 
