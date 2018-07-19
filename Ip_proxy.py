@@ -27,7 +27,7 @@ def ip_test():
         "Upgrade-Insecure-Requests": "1",
         "Cache-Control": "max-age=0",
     }
-    proxies = {"http": "http://103.109.58.242:8080", }   # 设置代理
+    proxies = {"http": "http://101.110.118.20:8090", }   # 设置代理
     res = requests.get(url, headers=headers, proxies=proxies, timeout=5)
     # 解析网页
     soup = BeautifulSoup(res.text, "html.parser")
