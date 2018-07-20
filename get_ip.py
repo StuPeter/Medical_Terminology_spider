@@ -13,12 +13,15 @@
 from bs4 import BeautifulSoup
 import requests
 import re
+import time
 
 
-def get_html(url):
+def get_html(url, ip=False, ip_proxies=None):
     """
-    获取网页页面
-    :param url: url
+    获取网页
+    :param url:链接
+    :param ip: 是否开启代理，Ture，False
+    :param ip_proxies: 代理地址
     :return:
     """
     try:
@@ -32,31 +35,34 @@ def get_html(url):
             "Accept-Encoding": "gzip, deflate",
             "Connection": "keep-alive",
         }
-        proxies = {"http": "http://103.109.58.242:8080", }   # 设置代理
-        res = requests.get(url, headers=headers, timeout=5)
+        # proxies = {"http": "http://103.109.58.242:8080", }   # 设置代理
+        if ip:
+            proxies = {"http": "http://" + ip_proxies, }  # 设置代理
+            res = requests.get(url, headers=headers, proxies=proxies, timeout=5)
+        else:
+            res = requests.get(url, headers=headers, timeout=5)
         res.encoding = res.apparent_encoding
-        print("Get the " + url + " successfully ")
+        print("Html页面获取成功 " + url)
         return res.text
     except:
-        print("Get the " + url + " failed ")
+        print("Html页面获取失败 " + url)
 
 
-def save_ip(data):
+def save_ip(data, save_path):
     """
     保存ip信息到txt
-    :param data: must be list
+    :param data: 数据类型为列表
     :return:
     """
     try:
-        print("We got total of " + str(len(data)) + " data.")
-        with open("Ip_Pools/ip_pools.txt", "a") as f:
+        print("总共获取 " + str(len(data)) + " 条数据")
+        with open(save_path, "a") as f:
             for i in range(len(data)):
                 f.write(data[i])
             f.close()
-            check_ip("Ip_Pools/ip_pools.txt")   # 查重
-            print("Ip pools file saved successfully")
+            print("IP池文件保存成功")
     except:
-        print("Ip pools file save failed")
+        print("IP池文件保存失败")
 
 
 def check_ip(path):
@@ -75,19 +81,103 @@ def check_ip(path):
             data_list.append(line)
         new_data_list = list(set(data_list))    # 查重
         # print(data_list)
-        print("The text has a total of " + str(len(data_list)) + " data.")
-        print("After checking, there are now " + str(len(new_data_list)) + " pieces of data.")
+        file_name = path.split("/")
+        print(file_name[-1] + "文件共有 " + str(len(data_list)) + " 条数据")
+        print("经过查重,现共有 " + str(len(new_data_list)) + " 条数据")
         # 保存文件
         with open(path, "w") as f:
             for i in range(len(new_data_list)):
                 f.write(new_data_list[i])
             f.close()
-            print("Ip pools file check successfully")
+            print("IP池查重成功")
     except:
-        print("Ip pools file check failed")
+        print("IP池查重失败")
 
 
-def get_data5u_free_ip():
+def ip_format(read_path, save_path):
+    """
+    将搜集的ip进行格式化转换，二次查重
+    :param read_path: 读取待转换的ip的文件路径
+    :param save_path: 转换完成的ip的保存路径
+    :return:
+    """
+    data_list = []
+    with open(read_path, "r") as fr:
+        lines = fr.readlines()
+        fr.close()
+    for line in lines:
+        new_line = line.split("___")
+        ip_format_line = new_line[0].replace(" ", "") + ":" + new_line[1] + "\n"
+        # print(ip_format_line)
+        data_list.append(ip_format_line)
+    with open(save_path, "a") as fs:
+        for i in range(len(data_list)):
+            fs.write(data_list[i])
+        fs.close()
+        print("格式化IP池保存成功")
+        fs.close()
+
+
+def ip_test(ip_proxies):
+    """
+    ip可用性验证
+    :param ip_proxies: 待测ip：例如：101.96.10.36:88
+    :return:
+    """
+    url = "http://ip.chinaz.com/"
+    headers = {
+        "Host": "ip.chinaz.com",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
+        "Accept-Encoding": "gzip, deflate",
+        "Referer": "https://blog.csdn.net/Winterto1990/article/details/51220307",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Cache-Control": "max-age=0",
+    }
+
+    proxies = {"http": "http://" + ip_proxies, }   # 设置代理
+    res = requests.get(url, headers=headers, proxies=proxies, timeout=1)
+    # 解析网页
+    soup = BeautifulSoup(res.text, "html.parser")
+    info_list = soup.find_all("p", {"class": "getlist pl10"})
+    for info in info_list:
+        is_local = info.get_text()
+        # print(is_local.find("122.244.227.47"))
+        print(info.get_text())
+    return is_local.find("122.244.227.47")  # 判断是否为本地的地址
+
+
+def ip_batch_inspection(read_path, save_path):
+    """
+    ip批量检测
+    :param read_path: ip池文件路径
+    :param save_path: 可用ip保存路径
+    :return:
+    """
+    with open(read_path, "r") as fr:
+        lines = fr.readlines()
+        fr.close()
+        count = 0
+        file_name = read_path.split("/")
+        print(file_name[-1] + "文件共有 " + str(len(lines)) + " 条数据")
+        for line in lines:
+            count += 1
+            ip_proxies = line.replace("\n", "")
+            try:
+                is_local = ip_test(ip_proxies)
+                if is_local < 0:
+                    with open(save_path, "a") as fs:
+                        fs.write(ip_proxies + "\n")
+            except:
+                pass
+                # print("ip不可用")
+            print("验证中......%.2f%%" %(count/len(lines)*100))
+        print("验证完毕")
+
+
+def get_data5u_free_ip(ip_pro, save_path):
     """
     爬取无忧代理的免费ip
     :return:
@@ -102,7 +192,7 @@ def get_data5u_free_ip():
     ip_list_sum = []
 
     for i in range(5):
-        res_text = get_html(url_list[i])
+        res_text = get_html(url_list[i], ip=True, ip_proxies=ip_pro)
         # 获取li标签中的IP信息
         soup = BeautifulSoup(res_text, "html.parser")
         tags = soup.find_all("ul", class_="l2")
@@ -121,10 +211,10 @@ def get_data5u_free_ip():
                     ip_info_format += str(ip_list[j]) + "___"
             ip_list_sum.append(ip_info_format)
     # print(ip_list_sum)
-    save_ip(ip_list_sum)
+    save_ip(ip_list_sum, save_path)
 
 
-def get_kuaidaili_free_ip():
+def get_kuaidaili_free_ip(ip_pro, save_path):
     """
     爬取快代理的免费ip
     :return:
@@ -133,7 +223,7 @@ def get_kuaidaili_free_ip():
     ip_list_sum = []
 
     for i in range(10):  # 获取页数
-        res_text = get_html("https://www.kuaidaili.com/ops/proxylist/" + str(i+1) + "/")
+        res_text = get_html("https://www.kuaidaili.com/ops/proxylist/" + str(i+1) + "/", ip=True, ip_proxies=ip_pro)
         # 获取li标签中的IP信息
         soup = BeautifulSoup(res_text, "html.parser")
         tags = soup.find_all("div", id="freelist")
@@ -155,17 +245,17 @@ def get_kuaidaili_free_ip():
                 # print(ip_info_format)
                 ip_list_sum.append(ip_info_format)
     # print(len(ip_list_sum))
-    save_ip(ip_list_sum)
+    save_ip(ip_list_sum, save_path)
 
 
-def get_xsdaili_free_ip():
+def get_xsdaili_free_ip(ip_pro, save_path):
     """
     爬取小舒代理的免费ip
     :return:
     """
     url = "http://www.xsdaili.com/"
     url_list = []
-    home_page = get_html(url)
+    home_page = get_html(url, ip=True, ip_proxies=ip_pro)
     home_soup = BeautifulSoup(home_page, "html.parser")
     home_tags = home_soup.find_all("div", class_="title")
     for home_tag in home_tags:
@@ -175,7 +265,7 @@ def get_xsdaili_free_ip():
     # print(url_list)
     ip_list_sum = []
     for i in range(len(url_list)):  # 页面页数
-        res_text = get_html(url_list[i])
+        res_text = get_html(url_list[i], ip=True, ip_proxies=ip_pro)
         # 获取div标签中的IP信息
         soup = BeautifulSoup(res_text, "html.parser")
         tags = soup.find("div", class_="cont")
@@ -192,77 +282,48 @@ def get_xsdaili_free_ip():
             # print(ip_info_format)
             ip_list_sum.append(ip_info_format)
     # print(len(ip_list_sum))
-    save_ip(ip_list_sum)
-
-
-def ip_format(read_path, save_path):
-    """将搜集的ip进行格式化转换，二次查重"""
-    data_list = []
-    with open(read_path, "r") as fr:
-        lines = fr.readlines()
-        fr.close()
-    for line in lines:
-        new_line = line.split("___")
-        ip_format_line = new_line[0].replace(" ", "") + ":" + new_line[1] + "\n"
-        # print(ip_format_line)
-        data_list.append(ip_format_line)
-    with open(save_path, "a") as fs:
-        for i in range(len(data_list)):
-            fs.write(data_list[i])
-        fs.close()
-        print("Ip format file saved successfully")
-        fs.close()
-
-
-def ip_test(ip_proxies):
-    """ip可用性验证"""
-    url = "http://ip.chinaz.com/"
-    headers = {
-        "Host": "ip.chinaz.com",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:60.0) Gecko/20100101 Firefox/60.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
-        "Accept-Encoding": "gzip, deflate",
-        "Referer": "https://blog.csdn.net/Winterto1990/article/details/51220307",
-        "Connection": "keep-alive",
-        "Upgrade-Insecure-Requests": "1",
-        "Cache-Control": "max-age=0",
-    }
-
-    proxies = {"http": "http://" + ip_proxies, }   # 设置代理
-    res = requests.get(url, headers=headers, proxies=proxies, timeout=2)
-    # 解析网页
-    soup = BeautifulSoup(res.text, "html.parser")
-    info_list = soup.find_all("p", {"class": "getlist pl10"})
-    for info in info_list:
-        print(info.get_text())
+    save_ip(ip_list_sum, save_path)
 
 
 def main():
-    # 获取ip建立IP池
-    # get_data5u_free_ip()
-    # get_kuaidaili_free_ip()
-    # get_xsdaili_free_ip()
+    available_ip_path = "Ip_Pools/ip_use_4.txt"  # 目前可用ip地址
+    strtime = time.strftime("%Y_%m_%d")     # 当前日期
+    ip_pools_path = "Ip_Pools/" + strtime + "_ip_pools.txt"     # 原始ip池地址
+    ip_format_pools_path = "Ip_Pools/" + strtime + "_ip_format_pools.txt"   # 格式化后ip池地址
+    ip_use_path = "Ip_Pools/" + strtime + "_ip_use.txt"
+    ip_use_list = []
+    # 读取可用ip地址，爬取ip地址
+    with open(available_ip_path, "r") as fr:
+        ip_use_lines = fr.readlines()
+        for ip_use_line in ip_use_lines:
+            ip_use_line_new = ip_use_line.replace("\n", "")
+            ip_use_list.append(ip_use_line_new)
+    for i in range(len(ip_use_list)):
+        # 获取ip建立IP池
+        try:
+            get_data5u_free_ip(ip_use_list[i], ip_pools_path)
+            break
+        except:
+            pass
+    for i in range(len(ip_use_list)):
+        # 获取ip建立IP池
+        try:
+            get_kuaidaili_free_ip(ip_use_list[i], ip_pools_path)
+            break
+        except:
+            pass
+    for i in range(len(ip_use_list)):
+        # 获取ip建立IP池
+        try:
+            get_xsdaili_free_ip(ip_use_list[i], ip_pools_path)
+            break
+        except:
+            pass
     # 筛选ip进行查重
-    # ip_format("Ip_Pools/ip_pools.txt", "Ip_Pools/ip_format_pools.txt")
-    # check_ip("Ip_Pools/ip_format_pools.txt")
+    ip_format(ip_pools_path, ip_format_pools_path)
+    check_ip(ip_format_pools_path)
     # 验证ip可用性
-    with open("Ip_Pools/ip_format_pools.txt", "r") as fr:
-        lines = fr.readlines()
-        fr.close()
-        count = 0
-        for line in lines:
-            count += 1
-            ip_proxies = line.replace("\n", "")
-            try:
-                ip_test(ip_proxies)
-                with open("Ip_Pools/ip_use.txt", "a") as fs:
-                    fs.write(ip_proxies + "\n")
-            except:
-                pass
-                # print("ip不可用")
-            print("验证中......%.2f%%" %(count/len(lines)*100))
-        print("验证完毕")
+    ip_batch_inspection(ip_format_pools_path, ip_use_path)
 
 
 if __name__ == '__main__':
