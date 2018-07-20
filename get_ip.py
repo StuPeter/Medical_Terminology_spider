@@ -138,7 +138,7 @@ def ip_test(ip_proxies):
     }
 
     proxies = {"http": "http://" + ip_proxies, }   # 设置代理
-    res = requests.get(url, headers=headers, proxies=proxies, timeout=1)
+    res = requests.get(url, headers=headers, proxies=proxies, timeout=2)
     # 解析网页
     soup = BeautifulSoup(res.text, "html.parser")
     info_list = soup.find_all("p", {"class": "getlist pl10"})
@@ -180,6 +180,8 @@ def ip_batch_inspection(read_path, save_path):
 def get_data5u_free_ip(ip_pro, save_path):
     """
     爬取无忧代理的免费ip
+    :param ip_pro: 要使用的代理ip（这里是用代理ip去爬代理ip）
+    :param save_path: 保存路径
     :return:
     """
     url_list = [
@@ -193,7 +195,10 @@ def get_data5u_free_ip(ip_pro, save_path):
 
     for i in range(5):
         res_text = get_html(url_list[i], ip=True, ip_proxies=ip_pro)
-        # 获取li标签中的IP信息
+        # 抓取错误页面，主动报异常
+        if (res_text.find("错误") != -1):
+            raise AttributeError('错误页面')
+        # 页面解析
         soup = BeautifulSoup(res_text, "html.parser")
         tags = soup.find_all("ul", class_="l2")
         for tag in tags:
@@ -217,6 +222,8 @@ def get_data5u_free_ip(ip_pro, save_path):
 def get_kuaidaili_free_ip(ip_pro, save_path):
     """
     爬取快代理的免费ip
+    :param ip_pro: 要使用的代理ip（这里是用代理ip去爬代理ip）
+    :param save_path: 保存路径
     :return:
     """
     url_list = "https://www.kuaidaili.com/ops/proxylist/1/"
@@ -224,7 +231,7 @@ def get_kuaidaili_free_ip(ip_pro, save_path):
 
     for i in range(10):  # 获取页数
         res_text = get_html("https://www.kuaidaili.com/ops/proxylist/" + str(i+1) + "/", ip=True, ip_proxies=ip_pro)
-        # 获取li标签中的IP信息
+        # 页面解析
         soup = BeautifulSoup(res_text, "html.parser")
         tags = soup.find_all("div", id="freelist")
         for tag in tags:
@@ -251,11 +258,14 @@ def get_kuaidaili_free_ip(ip_pro, save_path):
 def get_xsdaili_free_ip(ip_pro, save_path):
     """
     爬取小舒代理的免费ip
+    :param ip_pro: 要使用的代理ip（这里是用代理ip去爬代理ip）
+    :param save_path: 保存路径
     :return:
     """
     url = "http://www.xsdaili.com/"
     url_list = []
     home_page = get_html(url, ip=True, ip_proxies=ip_pro)
+    # 页面解析
     home_soup = BeautifulSoup(home_page, "html.parser")
     home_tags = home_soup.find_all("div", class_="title")
     for home_tag in home_tags:
@@ -266,7 +276,7 @@ def get_xsdaili_free_ip(ip_pro, save_path):
     ip_list_sum = []
     for i in range(len(url_list)):  # 页面页数
         res_text = get_html(url_list[i], ip=True, ip_proxies=ip_pro)
-        # 获取div标签中的IP信息
+        # 页面解析
         soup = BeautifulSoup(res_text, "html.parser")
         tags = soup.find("div", class_="cont")
         ip_info = tags.get_text()
@@ -282,6 +292,87 @@ def get_xsdaili_free_ip(ip_pro, save_path):
             # print(ip_info_format)
             ip_list_sum.append(ip_info_format)
     # print(len(ip_list_sum))
+    save_ip(ip_list_sum, save_path)
+
+
+def get_xicidaili_free_ip(ip_pro, save_path):
+    """
+    爬取西刺代理的免费ip
+    :param ip_pro: 要使用的代理ip（这里是用代理ip去爬代理ip）
+    :param save_path: 保存路径
+    :return:
+    """
+    ip_list_sum = []
+    for i in range(10):  # 获取页数
+        res_text = get_html("http://www.xicidaili.com/nn/" + str(i+1), ip=True, ip_proxies=ip_pro)
+        # 抓取错误页面，主动报异常
+        # print(res_text)
+        if (res_text.find("错误") != -1):     # 错误页面
+            raise AttributeError('错误页面')
+        elif (res_text == "block"):               # 空白页面
+            raise AttributeError('错误页面')
+        # 页面解析
+        soup = BeautifulSoup(res_text, "html.parser")
+        tags = soup.find_all("tr", class_="")
+        for tag in tags:
+            ip_list = []
+            ip_ths = tag.find_all("td")
+            for ip_th in ip_ths:
+                ip_info = ip_th.get_text().replace("\n", "")
+                if ip_info != "":
+                    ip_list.append(ip_info)
+            # print(ip_list)
+            try:
+                ip_info_format = ""
+                for k in range(7):   # 每条6个内容
+                    if k == 6:
+                        ip_info_format += str(ip_list[k]) + "\n"
+                    else:
+                        ip_info_format += str(ip_list[k]) + "___"
+                # print(ip_info_format)
+                ip_list_sum.append(ip_info_format)
+            except:
+                pass
+    # print((ip_list_sum))
+    save_ip(ip_list_sum, save_path)
+
+
+def get_89ip_free_ip(ip_pro, save_path):
+    """
+    爬取89免费代理的免费ip
+    :param ip_pro: 要使用的代理ip（这里是用代理ip去爬代理ip）
+    :param save_path: 保存路径
+    :return:
+    """
+    ip_list_sum = []
+    for i in range(10):  # 获取页数
+        res_text = get_html("http://www.89ip.cn/index_" + str(i+1) + ".html", ip=True, ip_proxies=ip_pro)
+        # 抓取错误页面，主动报异常
+        if (res_text.find("错误") != -1):     # 错误页面
+            raise AttributeError('错误页面')
+        # 页面解析
+        soup = BeautifulSoup(res_text, "html.parser")
+        tags = soup.find_all("tbody")
+        for tag in tags:
+            ip_ths = tag.find_all("tr")
+            for ip_th in ip_ths:
+                ip_tds = ip_th.find_all("td")
+                ip_list = []
+                for ip_td in ip_tds:
+                    ip_info = re.split(r'[\t\n ]', ip_td.get_text())  # 分割字符串
+                    for j in range(len(ip_info)):
+                        if ip_info[j] != "":
+                            ip_list.append(ip_info[j])
+                # print(ip_list)
+                ip_info_format = ""
+                for k in range(len(ip_list)):  # 每条6个内容
+                    if k == len(ip_list) - 1:
+                        ip_info_format += str(ip_list[k]) + "\n"
+                    else:
+                        ip_info_format += str(ip_list[k]) + "___"
+                # print(ip_info_format)
+                ip_list_sum.append(ip_info_format)
+    # print(ip_list_sum)
     save_ip(ip_list_sum, save_path)
 
 
@@ -316,6 +407,20 @@ def main():
         # 获取ip建立IP池
         try:
             get_xsdaili_free_ip(ip_use_list[i], ip_pools_path)
+            break
+        except:
+            pass
+    for i in range(len(ip_use_list)):
+        # 获取ip建立IP池
+        try:
+            get_xicidaili_free_ip(ip_use_list[i], ip_pools_path)
+            break
+        except:
+            pass
+    for i in range(len(ip_use_list)):
+        # 获取ip建立IP池
+        try:
+            get_89ip_free_ip(ip_use_list[i], ip_pools_path)
             break
         except:
             pass
