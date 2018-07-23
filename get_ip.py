@@ -138,7 +138,7 @@ def ip_test(ip_proxies):
     }
 
     proxies = {"http": "http://" + ip_proxies, }   # 设置代理
-    res = requests.get(url, headers=headers, proxies=proxies, timeout=2)
+    res = requests.get(url, headers=headers, proxies=proxies, timeout=1)
     # 解析网页
     soup = BeautifulSoup(res.text, "html.parser")
     info_list = soup.find_all("p", {"class": "getlist pl10"})
@@ -377,58 +377,59 @@ def get_89ip_free_ip(ip_pro, save_path):
 
 
 def main():
-    available_ip_path = "Ip_Pools/ip_use_4.txt"  # 目前可用ip地址
-    strtime = time.strftime("%Y_%m_%d")     # 当前日期
-    ip_pools_path = "Ip_Pools/" + strtime + "_ip_pools.txt"     # 原始ip池地址
-    ip_format_pools_path = "Ip_Pools/" + strtime + "_ip_format_pools.txt"   # 格式化后ip池地址
-    ip_use_path = "Ip_Pools/" + strtime + "_ip_use.txt"
-    ip_use_list = []
-    # 读取可用ip地址，爬取ip地址
-    with open(available_ip_path, "r") as fr:
-        ip_use_lines = fr.readlines()
-        for ip_use_line in ip_use_lines:
-            ip_use_line_new = ip_use_line.replace("\n", "")
-            ip_use_list.append(ip_use_line_new)
-    for i in range(len(ip_use_list)):
-        # 获取ip建立IP池
-        try:
-            get_data5u_free_ip(ip_use_list[i], ip_pools_path)
-            break
-        except:
-            pass
-    for i in range(len(ip_use_list)):
-        # 获取ip建立IP池
-        try:
-            get_kuaidaili_free_ip(ip_use_list[i], ip_pools_path)
-            break
-        except:
-            pass
-    for i in range(len(ip_use_list)):
-        # 获取ip建立IP池
-        try:
-            get_xsdaili_free_ip(ip_use_list[i], ip_pools_path)
-            break
-        except:
-            pass
-    for i in range(len(ip_use_list)):
-        # 获取ip建立IP池
-        try:
-            get_xicidaili_free_ip(ip_use_list[i], ip_pools_path)
-            break
-        except:
-            pass
-    for i in range(len(ip_use_list)):
-        # 获取ip建立IP池
-        try:
-            get_89ip_free_ip(ip_use_list[i], ip_pools_path)
-            break
-        except:
-            pass
-    # 筛选ip进行查重
-    ip_format(ip_pools_path, ip_format_pools_path)
-    check_ip(ip_format_pools_path)
+    # available_ip_path = "Ip_Pools/ip_use_4.txt"  # 目前可用ip地址
+    # strtime = time.strftime("%Y_%m_%d")     # 当前日期
+    # ip_pools_path = "Ip_Pools/" + strtime + "_ip_pools.txt"     # 原始ip池地址
+    # ip_format_pools_path = "Ip_Pools/" + strtime + "_ip_format_pools.txt"   # 格式化后ip池地址
+    # ip_use_path = "Ip_Pools/" + strtime + "_ip_use.txt"
+    # ip_use_list = []
+    # # 读取可用ip地址，爬取ip地址
+    # with open(available_ip_path, "r") as fr:
+    #     ip_use_lines = fr.readlines()
+    #     for ip_use_line in ip_use_lines:
+    #         ip_use_line_new = ip_use_line.replace("\n", "")
+    #         ip_use_list.append(ip_use_line_new)
+    # for i in range(len(ip_use_list)):
+    #     # 获取ip建立IP池
+    #     try:
+    #         get_data5u_free_ip(ip_use_list[i], ip_pools_path)
+    #         break
+    #     except:
+    #         pass
+    # for i in range(len(ip_use_list)):
+    #     # 获取ip建立IP池
+    #     try:
+    #         get_kuaidaili_free_ip(ip_use_list[i], ip_pools_path)
+    #         break
+    #     except:
+    #         pass
+    # for i in range(len(ip_use_list)):
+    #     # 获取ip建立IP池
+    #     try:
+    #         get_xsdaili_free_ip(ip_use_list[i], ip_pools_path)
+    #         break
+    #     except:
+    #         pass
+    # for i in range(len(ip_use_list)):
+    #     # 获取ip建立IP池
+    #     try:
+    #         get_xicidaili_free_ip(ip_use_list[i], ip_pools_path)
+    #         break
+    #     except:
+    #         pass
+    # for i in range(len(ip_use_list)):
+    #     # 获取ip建立IP池
+    #     try:
+    #         get_89ip_free_ip(ip_use_list[i], ip_pools_path)
+    #         break
+    #     except:
+    #         pass
+    # # 筛选ip进行查重
+    # ip_format(ip_pools_path, ip_format_pools_path)
+    # check_ip(ip_format_pools_path)
     # 验证ip可用性
-    ip_batch_inspection(ip_format_pools_path, ip_use_path)
+    # ip_batch_inspection(ip_format_pools_path, ip_use_path)
+    ip_batch_inspection("Ip_Pools/2018_07_20_ip_use.txt", "Ip_Pools/ip_use_5.txt")
 
 
 if __name__ == '__main__':
