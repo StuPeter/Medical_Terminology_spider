@@ -5,7 +5,7 @@
 # @Time    : 2018/7/17
 # @Author  : 圈圈烃
 # @File    : get_medical_from_baidu
-# @description:
+# @description: 获取词条列表和链接
 #
 #
 
@@ -17,7 +17,6 @@ import random
 
 def get_html(page_num, ip_pro, save_path):
     """获取百度百科医疗术语"""
-    strtime = time.strftime("%Y_%m_%d")  # 当前日期
     url = "https://baike.baidu.com/wikitag/api/getlemmas"   # 目标链接
     proxies = {"http": "http://" + ip_pro, }   # 设置代理
     headers = {
@@ -54,7 +53,6 @@ def get_html(page_num, ip_pro, save_path):
 def analysis_json(read_path, save_path):
     """解析获取的json数据"""
     # 解析数据
-    strtime = time.strftime("%Y_%m_%d")  # 当前日期
     with open(read_path, "r") as fr:
         med_txt = fr.read()
         med_json = json.loads(med_txt)
@@ -98,7 +96,7 @@ def check_medical_list(path):
 
 def main():
     today_date = time.strftime("%Y_%m_%d")  # 当前日期
-    list_save_path =  "Name_Url_data/medical_list_" + today_date + "/" + today_date + "_medical_list_sum.txt"
+    list_save_path = "Name_Url_data/medical_list_" + today_date + "/" + today_date + "_medical_list_sum.txt"
     available_ip_path = "Ip_Pools/ip_use_5.txt"  # 目前可用ip地址
     ip_use_list = []
     with open(available_ip_path, "r") as fr:
