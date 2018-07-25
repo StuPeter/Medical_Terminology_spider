@@ -20,7 +20,7 @@ def get_html(url, ip_pro, ua, save_path):
     proxies = {"http": "http://" + ip_pro, }   # 设置代理
     headers = {
         "Host": "baike.baidu.com",
-        "User-Agent": ua,
+        "User-Agent": ua,                      # 设置浏览器头
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Accept-Encoding": "gzip, deflate, br",
@@ -43,10 +43,10 @@ def get_html(url, ip_pro, ua, save_path):
 
 def main():
     # today_date = time.strftime("%Y_%m_%d")  # 当前日期
-    today_date = "2018_07_23"
+    today_date = "2018_07_26"
     list_save_path = "Name_Url_data/medical_list_" + today_date + "/" + today_date + "_medical_list_sum.txt"
     user_agent_path = "User_Agent_Pools/user_agent_pools.txt"
-    available_ip_path = "Ip_Pools/ip_use_5.txt"  # 目前可用ip地址
+    available_ip_path = "Ip_Pools/ip_use_6.txt"  # 目前可用ip地址
     # 读取医学术语和对应链接
     med_url_list = []
     med_name_list = []
@@ -54,7 +54,7 @@ def main():
         med_lines = fmr.readlines()
         for med_line in med_lines:
             med_line_new = med_line.split("---")
-            med_name_list.append(med_line_new[0].replace("/", "-"))    # 替换“\”,防止被认为是路径
+            med_name_list.append(med_line_new[0].replace("/", "-").replace("\\", "-"))    # 替换"\","\\",防止被认为是路径
             med_url_list.append(med_line_new[1].replace("\n", ""))
             # print(med_line_new[0])
             # print(med_line_new[1])
@@ -73,7 +73,7 @@ def main():
             ip_use_line_new = ip_use_line.replace("\n", "")
             ip_use_list.append(ip_use_line_new)
     # 保存页面
-    begin = 4787  # 断点记录
+    begin = 3381  # 断点记录
     for i in range(len(ip_use_list)):
         ip_index = random.randint(0, len(ip_use_list))
         print("目前正在使用第" + str(ip_index) + "个IP代理")
@@ -82,7 +82,7 @@ def main():
                 html_save_path = "Name_Url_data/medical_html_" + today_date + "/" + med_name_list[j] + ".html"
 
                 get_html(url=med_url_list[j], ip_pro=ip_use_list[ip_index], \
-                         ua=user_agent_list[random.randint(0, len(user_agent_list))], save_path=html_save_path)
+                         ua=user_agent_list[random.randint(0, len(user_agent_list)-1)], save_path=html_save_path)
 
                 begin = j + 1
 

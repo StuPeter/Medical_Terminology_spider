@@ -25,7 +25,7 @@ def get_html(page_num, ip_pro, save_path):
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Accept-Encoding": "gzip, deflate, br",
-        "Referer": "https://baike.baidu.com/wikitag/taglist?tagId=75953",
+        "Referer": "https://baike.baidu.com/wikitag/taglist?tagId=75956",           # 换目录修改(1)
         "Connection": "keep-alive",
         "Upgrade-Insecure-Requests": "1",
         "Cache-Control": "max-age=0",
@@ -38,7 +38,7 @@ def get_html(page_num, ip_pro, save_path):
         "fromLemma": "false",
         "limit": "100",
         "page": str(page_num),
-        "tagId": "75953",
+        "tagId": "75956",         # 换目录修改(2)
         "timeout": "3000",
     }
     res = requests.post(url, headers=headers, data=data, proxies=proxies, timeout=5)
@@ -95,9 +95,10 @@ def check_medical_list(path):
 
 
 def main():
-    today_date = time.strftime("%Y_%m_%d")  # 当前日期
+    # today_date = time.strftime("%Y_%m_%d")  # 当前日期
+    today_date = "2018_07_26"  # 当前日期
     list_save_path = "Name_Url_data/medical_list_" + today_date + "/" + today_date + "_medical_list_sum.txt"
-    available_ip_path = "Ip_Pools/ip_use_5.txt"  # 目前可用ip地址
+    available_ip_path = "Ip_Pools/ip_use_7.txt"  # 目前可用ip地址
     ip_use_list = []
     with open(available_ip_path, "r") as fr:
         ip_use_lines = fr.readlines()
@@ -108,7 +109,7 @@ def main():
     for i in range(len(ip_use_list)):
         ip_index = random.randint(0, len(ip_use_list))
         try:
-            for j in range(begin, 73):
+            for j in range(begin, 43):  # 修改页数
                 json_save_path = "Name_Url_data/medical_json_" + today_date + "/" + today_date + "_medical_json(" + str(
                     j) + ").txt"
                 get_html(page_num=j, ip_pro=ip_use_list[ip_index], save_path=json_save_path)
