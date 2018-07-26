@@ -431,8 +431,8 @@ def main():
     # 验证ip可用性
     ip_batch_inspection(ip_format_pools_path, ip_use_path)
 """
-    # ip_batch_inspection("Ip_Pools/ip_use_6.txt", "Ip_Pools/ip_use_7.txt")
-    check_ip("Ip_Pools/ip_use_7.txt")
+    # ip_batch_inspection("Ip_Pools/ip_use_7.txt", "Ip_Pools/ip_use_4.txt")
+    check_ip("Ip_Pools/ip_use_4.txt")
 
 
 if __name__ == '__main__':

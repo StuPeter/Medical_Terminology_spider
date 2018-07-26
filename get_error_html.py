@@ -2,6 +2,16 @@
 # _*_ coding:utf-8 _*_  
 #  
 # @Version : 1.0  
+# @Time    : 2018/7/26
+# @Author  : 圈圈烃
+# @File    : get_error_html
+# @description:
+#
+#
+#!/usr/bin/env python
+# _*_ coding:utf-8 _*_
+#
+# @Version : 1.0
 # @Time    : 2018/7/23
 # @Author  : 圈圈烃
 # @File    : get_detailed_page
@@ -12,6 +22,7 @@
 
 import requests
 import time
+import os
 import random
 
 
@@ -49,23 +60,26 @@ def get_html(url, ip_pro, ua, save_path):
         fs.close()
 
 
-def main():
-    # today_date = time.strftime("%Y_%m_%d")  # 当前日期
-    today_date = "2018_07_26"
-    list_save_path = "Name_Url_data/medical_list_" + today_date + "/" + today_date + "_medical_list_sum.txt"
+def re_get_html():
+    """
+    便利文件夹
+    :param work_path: 需要遍历的文件夹根目录
+    :return:
+    """
+    work_path = "Name_Url_data\\error"
+    list_path = "Name_Url_data\\drug_list\\2018_07_24_medical_list_sum.txt"
+    available_ip_path = "Ip_Pools\\ip_use_7.txt"  # 目前可用ip地址
     user_agent_path = "User_Agent_Pools/user_agent_pools.txt"
-    available_ip_path = "Ip_Pools/ip_use_6.txt"  # 目前可用ip地址
-    # 读取医学术语和对应链接
+
     med_url_list = []
     med_name_list = []
-    with open(list_save_path, "r") as fmr:
+    with open(list_path, "r") as fmr:
         med_lines = fmr.readlines()
         for med_line in med_lines:
             med_line_new = med_line.split("---")
-            med_name_list.append(med_line_new[0].replace("/", "-").replace("\\", "-"))    # 替换"\","\\",防止被认为是路径
+            med_name_list.append(med_line_new[0].replace("/", "-").replace("\\", "-"))  # 替换"\","\\",防止被认为是路径
             med_url_list.append(med_line_new[1].replace("\n", ""))
-            # print(med_line_new[0])
-            # print(med_line_new[1])
+
     # 读取UA代理
     user_agent_list = []
     with open(user_agent_path, "r") as fur:
@@ -80,24 +94,40 @@ def main():
         for ip_use_line in ip_use_lines:
             ip_use_line_new = ip_use_line.replace("\n", "")
             ip_use_list.append(ip_use_line_new)
+
+    index_list = []
+    re_url_list = []
+    re_name_list = []
+    for parent, dirnames, filenames in os.walk(work_path, followlinks=True):
+        for filename in filenames:
+            index_list.append(med_name_list.index(filename.replace(".html", "")))
+            re_url_list.append(med_url_list[med_name_list.index(filename.replace(".html", ""))])
+            re_name_list.append(filename.replace(".html", ""))
+            # print(filename)
+            # print(med_url_list[med_name_list.index(filename.replace(".html", ""))])
+
     # 保存页面
-    begin = 3381  # 断点记录
+    begin = 0  # 断点记录
     for i in range(len(ip_use_list)):
         ip_index = random.randint(0, len(ip_use_list))
         print("目前正在使用第" + str(ip_index) + "个IP代理")
         try:
-            for j in range(begin, len(med_url_list)):
-                html_save_path = "Name_Url_data/medical_html_" + today_date + "/" + med_name_list[j] + ".html"
+            for j in range(begin, len(re_url_list)):
+                html_save_path = "Name_Url_data/error_1/" + re_name_list[j] + ".html"
 
-                get_html(url=med_url_list[j], ip_pro=ip_use_list[ip_index], \
-                         ua=user_agent_list[random.randint(0, len(user_agent_list)-1)], save_path=html_save_path)
+                get_html(url=re_url_list[j], ip_pro=ip_use_list[ip_index], \
+                         ua=user_agent_list[random.randint(0, len(user_agent_list) - 1)], save_path=html_save_path)
 
                 begin = j + 1
 
-                print("第" + str(j) + "个页面保存成功>>>>>>>>>>>>>>>%.2f%%" % (begin/len(med_url_list)*100))
+                print("第" + str(j) + "个页面保存成功>>>>>>>>>>>>>>>%.2f%%" % (begin / len(re_url_list) * 100))
             break
         except:
             print(str(j) + "页面保存失败！！！！！")
+
+
+def main():
+    re_get_html()
 
 
 if __name__ == '__main__':
