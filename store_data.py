@@ -33,21 +33,24 @@ def store_list(read_path, collection):
 
 
 def main():
-    read_path = "Name_Url_data/drug_list/2018_07_24_medical_list_sum.txt"
-    read_path_1 = "Name_Url_data/diagnosis_list/2018_07_25_medical_list_sum.txt"
-    read_path_2 = "Name_Url_data/chinese_medicine_list/2018_07_26_medical_list_sum.txt"
+    read_path_1 = "Name_Url_data/drug_list/2018_07_24_medical_list_sum.txt"
+    read_path_2 = "Name_Url_data/diagnosis_list/2018_07_25_medical_list_sum.txt"
+    read_path_3 = "Name_Url_data/chinese_medicine_list/2018_07_26_medical_list_sum.txt"
+    read_path_4 = "Name_Url_data/disease_list/2018_07_23_medical_list_sum.txt"
     # 连接MongoDB
     client = MongoClient('mongodb://127.0.0.1:27017')
     # 获取名字为 medical_db 的数据库对象
     db = client.medical_db
     # 获取名字为 disease
-    collection = db.drug
-    collection_1 = db.diagnosis
-    collection_2 = db.chinese_medicine
+    collection_1 = db.drug
+    collection_2 = db.diagnosis
+    collection_3 = db.chinese_medicine
+    collection_4 = db.disease
     # 存入数据
-    store_list(read_path, collection)
     store_list(read_path_1, collection_1)
     store_list(read_path_2, collection_2)
+    store_list(read_path_3, collection_3)
+    store_list(read_path_4, collection_4)
     # 关闭客户端
     client.close()
 
