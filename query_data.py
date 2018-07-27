@@ -25,7 +25,7 @@ def main():
     collection_4 = db.disease
     # 模糊查询
     for need in collection_1.find({'名称': re.compile("痛")}):
-        # print(type(need))
+        print(type(need))
 
 
 if __name__ == '__main__':
