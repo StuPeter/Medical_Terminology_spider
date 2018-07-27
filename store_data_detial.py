@@ -35,11 +35,11 @@ def path_search(work_path):
     for parent, dirnames, filenames in os.walk(work_path, followlinks=True):
         for filename in filenames:
             file_path = os.path.join(parent, filename)
-            print('文件名：%s' % filename)
-            print('文件完整路径：%s\n' % file_path)
+            # print('文件名：%s' % filename)
+            # print('文件完整路径：%s\n' % file_path)
 
 
-def parser_html(html_path, filename):
+def parser_html(html_path, filename, collection):
     """
     解析百度百科词条页面
     :param html_path: 百科HTML页面路径
@@ -57,37 +57,60 @@ def parser_html(html_path, filename):
         "名称": filename,
         "简介": content.replace("...", "")
     }
+    key_tags = soup.find_all('div', class_="para-title level-2")
+    value_lists = []
+    key_lists = []
+    for key_tag in key_tags:
+        # 字典键
+        key_lists.append(key_tag.h2.contents[-1])
+        # 解析第一段<div class=para ...>
+        value_tags = key_tag.next_sibling.next_sibling
+        value_list = []
+        for value_new_tags in value_tags.contents:
+            pattern = re.compile(r'<.*?>')
+            value_new_tag = pattern.sub("", str(value_new_tags))
+            value_list.append(value_new_tag)
+            # print(value_list)
+        # 解析同一大段中的小段<div class=para ...>
+        count = 1
+        for i in range(1000):   # 百度百科页面“<div class=para ...>”的并列数量
+
+            vl = eval("value_tags" + count*".next_sibling")
+            try:
+                if vl == '\n':
+                    count += 1
+                    value_list.append(vl.string)
+                elif vl['class'][0] == 'para':
+                    count += 1
+                    for vl_con in vl.contents:
+                        pattern = re.compile(r'<.*?>')
+                        vl_new_con = pattern.sub("", str(vl_con))
+                        # print(vl_new_con)
+                        value_list.append(vl_new_con.replace("\n", ""))
+                    # print(type(vl.contents))
+                else:
+                    break
+            except:
+                break
 
 
-    # # 字典键
-    # key_list = []
-    # k_tags = soup.find_all('li', class_="level1")
-    # for k_tag in k_tags:
-    #     key_list.append(k_tag.a.string)
-    # # print(key_list)
-    # # 字典值
-    # value_list = []
-    # v_tags = soup.find_all('div', class_="para")
-    # for v_tag in v_tags:
-    #     value_list.append(v_tag.string)
-    # # 检测重复
-    # vs_tags = soup.find_all('div', class_="lemma-summary")
-    # try:
-    #     for vs_tag in vs_tags:
-    #         need_rm = vs_tag.find('div', class_="para").string
-    #         # print(need_rm)
-    #     value_list.remove(need_rm)
-    # except:
-    #     pass
-    # # 组成字典
-    # for i in range(len(key_list)):
-    #     doc[key_list[i]] = value_list[i]
+        # print(value_list)
+        value_new_list = ""
+        for j in range(len(value_list)):
+            value_new_list += value_list[j]
+        # print(value_new_list)
+        value_lists.append(value_new_list)
+
+    # print(len(value_lists) == len(key_lists))
+
+    for i in range(len(key_lists)):
+        doc[key_lists[i]] = value_lists[i]
     # print(doc)
-    # # collection.insert_one(doc)
-    # print("保存成功")
+    collection.insert_one(doc)
+    print("保存成功")
 
 
-def store_list_detial(read_path):
+def store_list_detial(read_path, collection):
     """
     将txt文件中的数据写入数据库
     :param read_path: 文件路径
@@ -97,16 +120,16 @@ def store_list_detial(read_path):
     for parent, dirnames, filenames in os.walk(read_path, followlinks=True):
         for filename in filenames:
             file_path = os.path.join(parent, filename)
-            print(filename)
-            parser_html(file_path, filename.replace(".html", ""))
+            # print(filename)
+            parser_html(file_path, filename.replace(".html", ""), collection)
 
 
 def main():
-    """
-    # read_path = "Name_Url_data\\drug_html"
-    # read_path_1 = "Name_Url_data/diagnosis_list/2018_07_25_medical_list_sum.txt"
-    # read_path_2 = "Name_Url_data/chinese_medicine_list/2018_07_26_medical_list_sum.txt"
-    # read_path_3 = "Name_Url_data/disease/2018_07_26_medical_list_sum.txt"
+
+    read_path = "Name_Url_data\\drug_html"
+    # read_path_1 = "Name_Url_data\\drug_html"
+    # read_path_2 = "Name_Url_data\\drug_html"
+    # read_path_3 = "Name_Url_data\\drug_html"
     # # 连接MongoDB
     client = MongoClient('mongodb://127.0.0.1:27017')
     # # 获取名字为 medical_db 的数据库对象
@@ -124,8 +147,9 @@ def main():
     # # 关闭客户端
     client.close()
     """
-    read_path = "Name_Url_data\\test"
+    read_path = "Name_Url_data\\drug_html"
     store_list_detial(read_path)
+    """
 
 
 if __name__ == '__main__':
