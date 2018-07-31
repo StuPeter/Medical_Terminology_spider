@@ -5,33 +5,28 @@
 # @Time    : 2018/7/26
 # @Author  : 圈圈烃
 # @File    : get_error_html
-# @description:
+# @Description:
 #
 #
-#!/usr/bin/env python
-# _*_ coding:utf-8 _*_
-#
-# @Version : 1.0
-# @Time    : 2018/7/23
-# @Author  : 圈圈烃
-# @File    : get_detailed_page
-# @description: 获取详细的词条页面
-#
-#
-
-
 import requests
 import time
 import os
 import random
 
 
-def get_html(url, ip_pro, ua, save_path):
-    """获取百度百科医疗术语详情页面"""
-    proxies = {"http": "http://" + ip_pro, }   # 设置代理
+def get_html(url, ip_proxies, user_agent, save_path):
+    """
+    获取词条的详情页面
+    :param url: 词条链接
+    :param ip_proxies: 代理ip
+    :param user_agent: 浏览器标识
+    :param save_path: html文件保存路径
+    :return:
+    """
+    proxies = {"http": "http://" + ip_proxies, }   # 设置代理
     headers = {
         "Host": "baike.baidu.com",
-        "User-Agent": ua,                      # 设置浏览器头
+        "User-Agent": user_agent,                      # 设置浏览器头
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2",
         "Accept-Encoding": "gzip, deflate, br",
@@ -40,20 +35,19 @@ def get_html(url, ip_pro, ua, save_path):
         "Upgrade-Insecure-Requests": "1",
         "Cache-Control": "max-age=0",
     }
-
     res = requests.post(url, headers=headers, proxies=proxies, timeout=5)
     res.encoding = "utf-8"
     # print(res.text)
     # 抓取错误页面，主动报异常
-    if (res.text.find("百度百科错误页") != -1):  # 错误页面
+    if res.text.find("百度百科错误页") != -1:  # 错误页面
         raise AttributeError('错误页面')
-    elif (res.text.find("ERRO: Cache Access Denied") != -1):  # 错误页面
+    elif res.text.find("ERRO: Cache Access Denied") != -1:  # 错误页面
         raise AttributeError('错误页面')
-    elif (res.text.find("错误: 您所请求的网址（URL）无法获取") != -1):  # 错误页面
+    elif res.text.find("错误: 您所请求的网址（URL）无法获取") != -1:  # 错误页面
         raise AttributeError('错误页面')
-    elif (res.text.find("403 Forbidden") != -1):  # 错误页面
+    elif res.text.find("403 Forbidden") != -1:  # 错误页面
         raise AttributeError('错误页面')
-    elif (res.text.find("锟斤") != -1):  # 错误页面
+    elif res.text.find("锟斤") != -1:  # 错误页面
         raise AttributeError('错误页面')
     with open(save_path, 'w', encoding='utf-8') as fs:
         fs.write(res.text)
@@ -62,15 +56,15 @@ def get_html(url, ip_pro, ua, save_path):
 
 def re_get_html():
     """
-    便利文件夹
+    遍历文件夹
     :param work_path: 需要遍历的文件夹根目录
     :return:
     """
-    work_path = "Name_Url_data\\error"
-    list_path = "Name_Url_data\\drug_list\\2018_07_24_medical_list_sum.txt"
-    available_ip_path = "Ip_Pools\\ip_use_7.txt"  # 目前可用ip地址
-    user_agent_path = "User_Agent_Pools/user_agent_pools.txt"
-
+    work_path = "Medical_txt_data\\error"  # 错误页面存放路径
+    list_path = "Medical_txt_data\\medical_list\\2018_07_30_75953_medical_list_sum.txt"  # 错误页面所属类路径
+    available_ip_path = "Ip_Pools\\2018_07_30_ip_use.txt"  # 目前可用代理ip保存路径
+    user_agent_path = "User_Agent\\user_agent_pools.txt"
+    # 读取列表
     med_url_list = []
     med_name_list = []
     with open(list_path, "r") as fmr:
@@ -79,7 +73,6 @@ def re_get_html():
             med_line_new = med_line.split("---")
             med_name_list.append(med_line_new[0].replace("/", "-").replace("\\", "-"))  # 替换"\","\\",防止被认为是路径
             med_url_list.append(med_line_new[1].replace("\n", ""))
-
     # 读取UA代理
     user_agent_list = []
     with open(user_agent_path, "r") as fur:
@@ -94,7 +87,7 @@ def re_get_html():
         for ip_use_line in ip_use_lines:
             ip_use_line_new = ip_use_line.replace("\n", "")
             ip_use_list.append(ip_use_line_new)
-
+    # 读取错误页面的名称
     index_list = []
     re_url_list = []
     re_name_list = []
@@ -103,10 +96,7 @@ def re_get_html():
             index_list.append(med_name_list.index(filename.replace(".html", "")))
             re_url_list.append(med_url_list[med_name_list.index(filename.replace(".html", ""))])
             re_name_list.append(filename.replace(".html", ""))
-            # print(filename)
-            # print(med_url_list[med_name_list.index(filename.replace(".html", ""))])
-
-    # 保存页面
+    # 重新下载，保存页面
     begin = 0  # 断点记录
     for i in range(len(ip_use_list)):
         ip_index = random.randint(0, len(ip_use_list))
@@ -115,14 +105,13 @@ def re_get_html():
             for j in range(begin, len(re_url_list)):
                 html_save_path = "Name_Url_data/error_1/" + re_name_list[j] + ".html"
 
-                get_html(url=re_url_list[j], ip_pro=ip_use_list[ip_index], \
-                         ua=user_agent_list[random.randint(0, len(user_agent_list) - 1)], save_path=html_save_path)
-
+                get_html(url=re_url_list[j], ip_proxies=ip_use_list[ip_index],
+                         user_agent=user_agent_list[random.randint(0, len(user_agent_list) - 1)], save_path=html_save_path)
                 begin = j + 1
-
                 print("第" + str(j) + "个页面保存成功>>>>>>>>>>>>>>>%.2f%%" % (begin / len(re_url_list) * 100))
             break
-        except:
+        except Exception as e:
+            print(e)
             print(str(j) + "页面保存失败！！！！！")
 
 

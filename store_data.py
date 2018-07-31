@@ -8,8 +8,6 @@
 # @description: 将数据存入MongoDB数据库中
 #
 #
-
-
 from pymongo import MongoClient
 
 
@@ -29,28 +27,32 @@ def store_list(read_path, collection):
                 'url': med_line_new[1].replace("\n", "")
             }
             collection.insert_one(doc)
-        print("保存成功")
+        # print("保存成功")
 
 
 def main():
-    read_path_1 = "Name_Url_data/drug_list/2018_07_24_medical_list_sum.txt"
-    read_path_2 = "Name_Url_data/diagnosis_list/2018_07_25_medical_list_sum.txt"
-    read_path_3 = "Name_Url_data/chinese_medicine_list/2018_07_26_medical_list_sum.txt"
-    read_path_4 = "Name_Url_data/disease_list/2018_07_23_medical_list_sum.txt"
+    read_path_1 = "Medical_txt_data\\medical_list\\2018_07_30_75953_medical_list_sum.txt"
+    read_path_2 = "Medical_txt_data\\medical_list\\2018_07_30_75954_medical_list_sum.txt"
+    read_path_3 = "Medical_txt_data\\medical_list\\2018_07_30_75955_medical_list_sum.txt"
+    read_path_4 = "Medical_txt_data\\medical_list\\2018_07_30_75956_medical_list_sum.txt"
     # 连接MongoDB
     client = MongoClient('mongodb://127.0.0.1:27017')
     # 获取名字为 medical_db 的数据库对象
-    db = client.medical_db
+    db = client.medical_new_db
     # 获取名字为 disease
-    collection_1 = db.drug
-    collection_2 = db.diagnosis
-    collection_3 = db.chinese_medicine
-    collection_4 = db.disease
+    collection_1 = db.disease
+    collection_2 = db.drug
+    collection_3 = db.diagnosis
+    collection_4 = db.chinese_medicine
     # 存入数据
     store_list(read_path_1, collection_1)
+    print("----------------------db.disease保存成功----------------------")
     store_list(read_path_2, collection_2)
+    print("----------------------db.drug保存成功----------------------")
     store_list(read_path_3, collection_3)
+    print("----------------------db.diagnosis保存成功----------------------")
     store_list(read_path_4, collection_4)
+    print("----------------------db.chinese_medicine保存成功----------------------")
     # 关闭客户端
     client.close()
 

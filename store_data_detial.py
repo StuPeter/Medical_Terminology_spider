@@ -5,38 +5,13 @@
 # @Time    : 2018/7/26
 # @Author  : 圈圈烃
 # @File    : store_data_detial
-# @description:
+# @Description: 将获取的详细数据存入MongoDB数据库中
 #
 #
-#!/usr/bin/env python
-# _*_ coding:utf-8 _*_
-#
-# @Version : 1.0
-# @Time    : 2018/7/25
-# @Author  : 圈圈烃
-# @File    : store_data
-# @description: 将数据存入MongoDB数据库中
-#
-#
-
-
 from pymongo import MongoClient
 from bs4 import BeautifulSoup
 import re
 import os
-
-
-def path_search(work_path):
-    """
-    便利文件夹
-    :param work_path: 需要遍历的文件夹根目录
-    :return:
-    """
-    for parent, dirnames, filenames in os.walk(work_path, followlinks=True):
-        for filename in filenames:
-            file_path = os.path.join(parent, filename)
-            # print('文件名：%s' % filename)
-            # print('文件完整路径：%s\n' % file_path)
 
 
 def parser_html(html_path, filename, collection):
@@ -49,20 +24,20 @@ def parser_html(html_path, filename, collection):
     """
     with open(html_path, "r", encoding="utf-8") as fmr:
         med_res = fmr.read()
-
     soup = BeautifulSoup(med_res, 'html.parser')
     # 创建字典
-    try :
+    try:
         content = soup.find_all(attrs={"name": "description"})[0]['content']
         doc = {
             "名称": filename,
             "简介": content.replace("...", "")
         }
-    except:
+    except Exception as e:
         doc = {
             "名称": filename,
             "简介": None,
         }
+    # 解析页面
     key_tags = soup.find_all('div', class_="para-title level-2")
     value_lists = []
     key_lists = []
@@ -76,11 +51,9 @@ def parser_html(html_path, filename, collection):
             pattern = re.compile(r'<.*?>')
             value_new_tag = pattern.sub("", str(value_new_tags))
             value_list.append(value_new_tag)
-            # print(value_list)
         # 解析同一大段中的小段<div class=para ...>
         count = 1
         for i in range(1000):   # 百度百科页面“<div class=para ...>”的并列数量
-
             vl = eval("value_tags" + count*".next_sibling")
             try:
                 if vl == '\n':
@@ -96,24 +69,18 @@ def parser_html(html_path, filename, collection):
                     # print(type(vl.contents))
                 else:
                     break
-            except:
+            except Exception as e:
                 break
-
-
-        # print(value_list)
+        # 同一段内容合并
         value_new_list = ""
         for j in range(len(value_list)):
             value_new_list += value_list[j]
-        # print(value_new_list)
         value_lists.append(value_new_list)
-
-    # print(len(value_lists) == len(key_lists))
-
+    # 组成字典
     for i in range(len(key_lists)):
         doc[key_lists[i]] = value_lists[i]
-    # print(doc)
+    # 存入数据库
     collection.insert_one(doc)
-    # print("保存成功")
 
 
 def store_list_detial(read_path, collection):
@@ -132,39 +99,40 @@ def store_list_detial(read_path, collection):
                 parser_html(file_path, filename.replace(".html", ""), collection)
                 print("第" + str(count) + "个页面成功存入数据库>>>>>>>>>>>>>>>%.2f%%" % (count / len(filenames) * 100))
                 count += 1
-            except:
+            except Exception as e:
+                print(e)
                 print("第" + str(count) + "个页面无法存入数据库！！！>>>>>>>>>>>>>>>%.2f%%" % (count / len(filenames) * 100))
                 count += 1
 
 
-
 def main():
-
-    read_path_1 = "Name_Url_data\\drug_html"
-    read_path_2 = "Name_Url_data\\diagnosis_html"
-    read_path_3 = "Name_Url_data\\chinese_medicine_html"
-    read_path_4 = "Name_Url_data\\disease_html"
-    # # 连接MongoDB
+    read_path_1 = "Medical_txt_data\\medical_html_75953"
+    read_path_2 = "Medical_txt_data\\medical_html_75954"
+    read_path_3 = "Medical_txt_data\\medical_html_75955"
+    read_path_4 = "Medical_txt_data\\medical_html_75956"
+    # 连接MongoDB
     client = MongoClient('mongodb://127.0.0.1:27017')
-    # # 获取名字为 medical_db 的数据库对象
-    db = client.medical_detial_db
-    # # 获取名字为 disease
-    collection_1 = db.drug
-    collection_2 = db.diagnosis
-    collection_3 = db.chinese_medicine
-    collection_4 = db.disease
+    # 获取名字为 medical_db 的数据库对象
+    db = client.medical_new_detial_db
+    # 获取名字为 disease
+    collection_1 = db.disease
+    collection_2 = db.drug
+    collection_3 = db.diagnosis
+    collection_4 = db.chinese_medicine
     # # 存入数据
-    # store_list_detial(read_path_1, collection_1)
-    # store_list_detial(read_path_2, collection_2)
+    store_list_detial(read_path_1, collection_1)
+    print("----------------------db.disease保存成功----------------------")
+    store_list_detial(read_path_2, collection_2)
+    print("----------------------db.drug保存成功----------------------")
     store_list_detial(read_path_3, collection_3)
+    print("----------------------db.diagnosis保存成功----------------------")
     store_list_detial(read_path_4, collection_4)
+    print("----------------------db.chinese_medicine保存成功----------------------")
+
     # # 关闭客户端
     client.close()
-    """
-    read_path = "Name_Url_data\\drug_html"
-    store_list_detial(read_path)
-    """
 
 
 if __name__ == '__main__':
     main()
+
